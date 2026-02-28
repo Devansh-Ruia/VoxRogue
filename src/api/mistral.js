@@ -122,7 +122,12 @@ export async function callGameMaster(playerSpeech, room, player) {
   if (!toolCalls?.length) throw new Error("No tool call in response");
   const argsStr = toolCalls[0].function?.arguments;
   if (!argsStr) throw new Error("Empty tool arguments");
-  const parsed = JSON.parse(argsStr);
+  let parsed;
+  try {
+    parsed = JSON.parse(argsStr);
+  } catch {
+    throw new Error("Game master returned an unreadable response. Try again.");
+  }
   return {
     action_type: parsed.action_type,
     target: parsed.target,

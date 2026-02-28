@@ -13,7 +13,7 @@ export function applyDamageToEnemy(rooms, roomIdx, enemyName, amount) {
     if (i !== roomIdx) return r;
     return {
       ...r,
-      enemies: r.enemies.map((e) => {
+      enemies: (r.enemies || []).map((e) => {
         if (e.name !== enemyName) return e;
         const newHp = Math.max(0, (e.hp ?? e.maxHp) - amount);
         return { ...e, hp: newHp };
@@ -47,7 +47,7 @@ export function changeEnemyMood(rooms, roomIdx, enemyName, mood) {
     if (i !== roomIdx) return r;
     return {
       ...r,
-      enemies: r.enemies.map((e) =>
+      enemies: (r.enemies || []).map((e) =>
         e.name === enemyName ? { ...e, mood } : e
       ),
     };
