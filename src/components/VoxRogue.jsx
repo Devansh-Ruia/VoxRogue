@@ -20,6 +20,7 @@ export function VoxRogue() {
     isDead,
     isWon,
     isThinking,
+    isTakingDamage,
     processAction,
     resetGame,
     logColors,
@@ -49,15 +50,24 @@ export function VoxRogue() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#0a0a0a",
-        color: "#e2e8f0",
-        fontFamily: "'Courier New', monospace",
+        background: "radial-gradient(ellipse at 20% 50%, #0d0d22, #080810)",
+        color: "#f0f0ff",
+        fontFamily: "'Space Mono', 'Courier New', monospace",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         padding: 16,
       }}
     >
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          background: "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)",
+          zIndex: 999,
+        }}
+      ></div>
       <div style={{ width: "100%", maxWidth: 860 }}>
         <header
           style={{
@@ -67,9 +77,12 @@ export function VoxRogue() {
             marginBottom: 16,
           }}
         >
-          <h1 style={{ color: "#fde68a", margin: 0, fontSize: 24 }}>
-            ⚔️ VOXROGUE
+          <h1 style={{ color: "#f0f0ff", margin: 0, fontSize: 24, letterSpacing: 10, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+            VOXROGUE
           </h1>
+          <div style={{ color: "#2a2a50", fontSize: 10 }}>
+            // DUNGEON_SYS v0.1 // MISTRAL_ENGINE // VOICE_INPUT_ACTIVE
+          </div>
           <button
             type="button"
             onClick={() => setSettingsOpen((s) => !s)}
@@ -163,7 +176,11 @@ export function VoxRogue() {
           style={{
             marginTop: 12,
             fontSize: 12,
-            color: "#64748b",
+            color: "#2a2a50",
+            textAlign: "center",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+            lineHeight: 1.6,
           }}
         >
           "attack the goblin" · "reason with the guard" · "pick up the key" ·
@@ -186,20 +203,21 @@ export function VoxRogue() {
           <div
             style={{
               background: "#0a0f0a",
-              border: "2px solid #14532d",
+              border: "2px solid #00ff88",
               borderRadius: 8,
               padding: 32,
               maxWidth: 420,
               textAlign: "center",
+              boxShadow: "0 0 20px #00ff8844",
             }}
           >
-            <h2 style={{ color: "#fde68a", marginTop: 0 }}>
-              ☠️ THE DUNGEON IS CONQUERED
+            <h2 style={{ color: "#00ff88", marginTop: 0, fontSize: 28 }}>
+              // DUNGEON CONQUERED //
             </h2>
-            <p style={{ color: "#94a3b8" }}>
+            <p style={{ color: "#6060a0" }}>
               Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
             </p>
-            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
+            <p style={{ fontStyle: "italic", color: "#f0f0ff" }}>
               Against all probability, and certainly against all good taste,
               you've won. The dungeon is mildly impressed. Don't let it go to
               your head.
@@ -210,15 +228,15 @@ export function VoxRogue() {
               style={{
                 marginTop: 16,
                 padding: "10px 20px",
-                background: "#14532d",
-                border: "1px solid #166534",
-                color: "#e2e8f0",
+                background: "#0a1f0a",
+                border: "1px solid #00ff88",
+                color: "#00ff88",
                 borderRadius: 6,
                 cursor: "pointer",
                 fontFamily: "inherit",
               }}
             >
-              Play Again
+              // RESTART
             </button>
           </div>
         </div>
@@ -238,18 +256,19 @@ export function VoxRogue() {
         >
           <div
             style={{
-              background: "#0f0a0a",
-              border: "2px solid #7f1d1d",
+              background: "#100a0a",
+              border: "2px solid #ff2244",
               borderRadius: 8,
               padding: 32,
               maxWidth: 420,
               textAlign: "center",
+              boxShadow: "0 0 20px #ff224444",
             }}
           >
-            <h2 style={{ color: "#f87171", marginTop: 0 }}>
-              ☠️ YOU HAVE DIED
+            <h2 style={{ color: "#ff2244", marginTop: 0, fontSize: 28 }}>
+              // SYSTEM OVERLOAD //
             </h2>
-            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
+            <p style={{ fontStyle: "italic", color: "#f0f0ff" }}>
               The dungeon adds your bones to its extensive collection. You
               were, at minimum, memorable. Mostly as a cautionary tale.
             </p>
@@ -259,18 +278,30 @@ export function VoxRogue() {
               style={{
                 marginTop: 16,
                 padding: "10px 20px",
-                background: "#7f1d1d",
-                border: "1px solid #991b1b",
-                color: "#e2e8f0",
+                background: "#1f0a0a",
+                border: "1px solid #ff2244",
+                color: "#ff2244",
                 borderRadius: 6,
                 cursor: "pointer",
                 fontFamily: "inherit",
               }}
             >
-              Try Again
+              // RESTART
             </button>
           </div>
         </div>
+      )}
+
+      {isTakingDamage && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            pointerEvents: "none",
+            zIndex: 999,
+            animation: "damage-flash 0.3s ease-out",
+          }}
+        ></div>
       )}
     </div>
   );

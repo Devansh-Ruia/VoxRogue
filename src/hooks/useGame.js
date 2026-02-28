@@ -36,6 +36,7 @@ export function useGame() {
   const [isDead, setIsDead] = useState(false);
   const [isWon, setIsWon] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [isTakingDamage, setIsTakingDamage] = useState(false);
 
   const addLog = useCallback((type, text) => {
     setLog((prev) => [...prev, { type, text }]);
@@ -83,6 +84,8 @@ export function useGame() {
         if (o.damage_taken != null && o.damage_taken > 0) {
           nextPlayer = applyDamageToPlayer(nextPlayer, o.damage_taken);
           addLog("combat", `You take ${o.damage_taken} damage.`);
+          setIsTakingDamage(true);
+          setTimeout(() => setIsTakingDamage(false), 300);
         }
         if (o.enemy_defeated && target) {
           addLog("system", `${target} has been defeated.`);
@@ -168,6 +171,7 @@ export function useGame() {
       roomIdx,
       player,
       addLog,
+      setIsTakingDamage,
     ]
   );
 
@@ -180,6 +184,7 @@ export function useGame() {
     isDead,
     isWon,
     isThinking,
+    isTakingDamage,
     processAction,
     resetGame,
     logColors: LOG_COLORS,

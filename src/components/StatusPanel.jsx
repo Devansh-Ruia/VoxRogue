@@ -13,10 +13,10 @@ export function StatusPanel({ player, room }) {
       style={{
         width: 260,
         padding: 12,
-        background: "#0f0f0f",
-        border: "1px solid #333",
-        borderRadius: 4,
-        fontFamily: "Courier New, monospace",
+        background: "#0e0e1a",
+        border: "1px solid #1e1e35",
+        borderRadius: 8,
+        fontFamily: "'Space Mono', monospace",
         fontSize: 13,
         display: "flex",
         flexDirection: "column",
@@ -24,12 +24,12 @@ export function StatusPanel({ player, room }) {
       }}
     >
       <section>
-        <div style={{ color: "#94a3b8", marginBottom: 4 }}>Player</div>
+        <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: 4 }}>// PLAYER</div>
         <div style={{ marginBottom: 4 }}>
           <div
             style={{
-              height: 8,
-              background: "#1e293b",
+              height: 6,
+              background: "#12121f",
               borderRadius: 4,
               overflow: "hidden",
             }}
@@ -38,8 +38,10 @@ export function StatusPanel({ player, room }) {
               style={{
                 height: "100%",
                 width: `${Math.max(0, Math.min(100, hpPct))}%`,
-                background: hpColor,
+                background: hpPct < 30 ? "#ff2244" : "#00b4ff",
                 borderRadius: 4,
+                boxShadow: hpPct < 30 ? "0 0 8px #ff224444, 0 0 20px #ff224422" : "0 0 8px #00b4ff44, 0 0 20px #00b4ff22",
+                animation: hpPct < 30 ? "danger-pulse 1.5s infinite" : "none",
               }}
             />
           </div>
@@ -50,26 +52,50 @@ export function StatusPanel({ player, room }) {
         <div style={{ marginBottom: 4 }}>Gold: {player.gold ?? 0}</div>
         <div>
           Inventory:{" "}
-          {(player.inventory || []).length
-            ? (player.inventory || []).join(", ")
-            : "—"}
+          <div style={{ display: "inline-flex", gap: 4, flexWrap: "wrap" }}>
+            {(player.inventory || []).length
+              ? (player.inventory || []).map((item, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      background: "#12121f",
+                      border: "1px solid #1e1e35",
+                      borderRadius: 4,
+                      padding: "2px 8px",
+                      color: "#6060a0",
+                    }}
+                  >
+                    {item}
+                  </span>
+                ))
+              : "—"}
+          </div>
         </div>
       </section>
 
       {aliveEnemies.length > 0 && (
-        <section>
-          <div style={{ color: "#94a3b8", marginBottom: 6 }}>Enemies</div>
+        <section style={{ background: "#0e0010", padding: 12, borderRadius: 8 }}>
+          <div style={{ color: "#2a2a50", marginBottom: 6, fontSize: 9, letterSpacing: 4 }}>// ENEMIES</div>
           {aliveEnemies.map((e) => {
             const epct = ((e.hp ?? e.maxHp) / (e.maxHp || 1)) * 100;
-            const ecolor =
-              epct > 60 ? "#22c55e" : epct > 30 ? "#eab308" : "#ef4444";
+            const ecolor = "#ff2244";
             return (
               <div key={e.name} style={{ marginBottom: 8 }}>
-                <div style={{ marginBottom: 2 }}>{e.name}</div>
+                <div style={{ marginBottom: 2, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: e.mood === "hostile" ? "#ff2244" : "#ffaa00",
+                    boxShadow: e.mood === "hostile" ? "0 0 4px #ff2244, 0 0 8px #ff224466" : "none",
+                    animation: e.mood === "hostile" ? "mic-pulse 1.5s infinite" : "none",
+                  }} />
+                  {e.name}
+                </div>
                 <div
                   style={{
                     height: 6,
-                    background: "#1e293b",
+                    background: "#12121f",
                     borderRadius: 3,
                     overflow: "hidden",
                   }}
@@ -83,8 +109,8 @@ export function StatusPanel({ player, room }) {
                     }}
                   />
                 </div>
-                <span style={{ fontSize: 11 }}>
-                  {e.hp ?? e.maxHp}/{e.maxHp} · {e.mood ?? "hostile"}
+                <span style={{ fontSize: 11, color: "#6060a0" }}>
+                  {e.hp ?? e.maxHp}/{e.maxHp} HP · {e.mood ?? "hostile"}
                 </span>
               </div>
             );
@@ -94,17 +120,20 @@ export function StatusPanel({ player, room }) {
 
       {loot.length > 0 && (
         <section>
-          <div style={{ color: "#94a3b8", marginBottom: 4 }}>
-            On the Ground
-          </div>
+          <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: 4 }}>// LOOT</div>
           <div>{loot.join(", ")}</div>
         </section>
       )}
 
       <section>
-        <div style={{ color: "#94a3b8", marginBottom: 4 }}>Exits</div>
+        <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: 4 }}>// EXITS</div>
         <div>
-          {exits.length ? exits.join(", ") : "None"}
+          {(exits || []).map((exit) => (
+            <div key={exit} style={{ color: "#6060a0", marginBottom: 4 }}>
+              {exit === "north" && "↑"} {exit === "east" && "→"}{" "}
+              {exit === "south" && "↓"} {exit === "west" && "←"} {room.exits[exit]}
+            </div>
+          ))}
         </div>
       </section>
     </div>
