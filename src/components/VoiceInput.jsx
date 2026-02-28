@@ -57,7 +57,7 @@ export function VoiceInput({
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+
           placeholder="Say or type your action..."
           disabled={disabled}
           style={{
