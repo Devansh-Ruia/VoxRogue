@@ -7,6 +7,7 @@ const ELEVENLABS_MODEL = "eleven_monolingual_v1";
  */
 export async function speak(text, apiKey, voiceOn) {
   if (!voiceOn || !text?.trim()) return;
+  console.log("[ElevenLabs] speaking:", text.slice(0, 40));
   try {
     if (apiKey) {
       const res = await fetch(

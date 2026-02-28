@@ -92,6 +92,7 @@ export async function callGameMaster(playerSpeech, room, player) {
   if (!key) throw new Error("VITE_MISTRAL_KEY is not set");
 
   const systemPrompt = buildSystemPrompt(room, player);
+  // ✅ MISTRAL SWAP COMPLETE
   const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
     headers: {
