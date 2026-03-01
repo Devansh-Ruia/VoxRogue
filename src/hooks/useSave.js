@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
 
 const DEBOUNCE_TIME = 2000; // 2 seconds
 
@@ -17,7 +17,7 @@ export function useSave() {
       }
 
       debounceTimer.current = setTimeout(async () => {
-        const { data, error } = await supabase.from("game_saves").upsert(
+        const { data, error } = await getSupabase().from("game_saves").upsert(
           {
             user_id: userId,
             room_idx: roomIdx,

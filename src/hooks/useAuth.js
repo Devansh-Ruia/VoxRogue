@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
 
 export function useAuth() {
   const [userId, setUserId] = useState(null);
@@ -7,7 +7,7 @@ export function useAuth() {
 
   useEffect(() => {
     async function getOrCreateUser() {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await getSupabase().auth.getSession();
       if (error) {
         console.error("Error getting session:", error);
       }
@@ -16,7 +16,7 @@ export function useAuth() {
         setUserId(data.session.user.id);
       } else {
         // Sign in anonymously if no session
-        const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
+        const { data: signInData, error: signInError } = await getSupabase().auth.signInAnonymously();
         if (signInError) {
           console.error("Error signing in anonymously:", signInError);
         } else if (signInData?.user) {
