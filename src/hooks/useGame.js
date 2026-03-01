@@ -51,7 +51,6 @@ export function useGame() {
     setIsDead(false);
     setIsWon(false);
     setIsThinking(false);
-    setSceneImage(null);
   }, []);
 
   const processAction = useCallback(
@@ -184,7 +183,6 @@ setTimeout(() => setIsTakingDamage(false), 300);
     isDead,
     isWon,
     isThinking,
-    sceneImage,
     processAction,
     resetGame,
     isTakingDamage,
