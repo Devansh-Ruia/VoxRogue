@@ -1,3 +1,4 @@
+import { DUNGEON } from "../game/dungeon";
 export function StatusPanel({ player, room }) {
   const hpPct = ((player.hp ?? player.maxHp) / (player.maxHp || 1)) * 100;
   const hpColor = hpPct > 30 ? "#00b4ff" : "#ff2244";
@@ -150,13 +151,17 @@ export function StatusPanel({ player, room }) {
       )}
 
       <section>
-        <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: "4px" }}> // EXITS</div>
+        <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: "4px" }}>// EXITS</div>
         <div>
-          {exits.length ? exits.map((exit, i) => (
-            <div key={i} style={{ color: "#6060a0", marginBottom: 2, fontSize: 12 }}>
-              ↑ {room.exits[exit]} → {exit.charAt(0).toUpperCase() + exit.slice(1)}
-            </div>
-          )) : <div style={{ color: "#2a2a50", fontSize: 11 }}>—</div>}
+          {exits.length ? exits.map((dir, i) => {
+            const arrow = dir === "north" ? "↑" : dir === "east" ? "→" : dir === "south" ? "↓" : "←";
+            const destRoom = DUNGEON[room.exits[dir]];
+            return (
+              <div key={i} style={{ color: "#6060a0", marginBottom: 2, fontSize: 12 }}>
+                {arrow} {destRoom?.name ?? dir}
+              </div>
+            );
+          }) : <div style={{ color: "#2a2a50", fontSize: 11 }}>—</div>}
         </div>
       </section>
     </div>
