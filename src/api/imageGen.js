@@ -1,17 +1,14 @@
-export async function generateSceneImage(room, action, narration) {
-  const stylePrefix = "dark fantasy dungeon, pixel art inspired, neon indigo lighting, cinematic, moody atmosphere —";
-  const prompt = `${stylePrefix} ${room.name}: ${room.desc} ${narration ? narration.slice(0, 120) : ''}`;
+export async function generateSceneImage(room, narration) {
+  const prompt = encodeURIComponent(
+    `dark fantasy dungeon scene, neon indigo lighting, cinematic, moody, pixel art inspired. ` +
+    `${room.name}: ${room.desc} ` +
+    `${narration ? narration.slice(0, 100) : ''}`
+  );
 
-  try {
-    const r = await fetch('/api/image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
-    });
-    if (!r.ok) return null;
-    const data = await r.json();
-    return data.image ?? null;
-  } catch {
-    return null;
-  }
+  // Pollinations returns the image directly as a URL — no key needed
+  const seed = Math.floor(Math.random() * 999999);
+  const url = `https://image.pollinations.ai/prompt/${prompt}?width=768&height=432&seed=${seed}&model=flux&nologo=true`;
+
+  // Return the URL directly — no fetch needed,  handles it
+  return url;
 }
