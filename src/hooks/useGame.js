@@ -73,10 +73,9 @@ export function useGame() {
         speak(narration, elevenLabsKey, voiceOn);
 
         // fire and forget — don't await
-        const img = generateSceneImage(currentRoom, narration).then(img => {
-          if (img) setSceneImage(img);
-        });
-
+        generateSceneImage(currentRoom, narration)
+          .then(url => { if (url) setSceneImage(url); })
+          .catch(() => {}); // swallow silently
         let nextPlayer = { ...player };
         let nextRooms = [...rooms];
 
