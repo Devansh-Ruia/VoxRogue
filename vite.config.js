@@ -10,5 +10,12 @@ export default defineConfig({
     commonjsOptions: {
       include: [/@supabase\/supabase-js/, /node_modules/],
     },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          supabase: ['@supabase/supabase-js'],
+        },
+      },
+    },
   },
 })
