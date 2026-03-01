@@ -150,7 +150,9 @@ export function VoxRogue() {
         >
           <div>
             <SceneViewer
-              imageSrc={sceneImage}
+              roomName={currentRoom?.name}
+              enemies={currentRoom?.enemies || []}
+              loot={currentRoom?.loot || []}
               isThinking={isThinking}
               isTakingDamage={isTakingDamage}
               isDead={isDead}
