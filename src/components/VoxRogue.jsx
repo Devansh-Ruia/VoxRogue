@@ -193,50 +193,54 @@ export function VoxRogue() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.85)",
+            background: "rgba(0,8,4,0.96)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 10,
+            zIndex: 100,
           }}
         >
           <div
             style={{
-              background: "#0a0f0a",
-              border: "2px solid #00ff88",
-              borderRadius: 8,
-              padding: 32,
-              maxWidth: 420,
               textAlign: "center",
-              boxShadow: "0 0 20px #00ff8844",
             }}
           >
-            <h2 style={{ color: "#00ff88", marginTop: 0, fontSize: 28 }}>
-              // DUNGEON CONQUERED //
+            <h2
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontWeight: 700,
+                fontSize: 64,
+                color: "#00ff88",
+                textShadow: "0 0 40px #00ff8866",
+                margin: 0,
+              }}
+            >
+              VICTORY
             </h2>
-            <p style={{ color: "#6060a0" }}>
-              Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
-            </p>
-            <p style={{ fontStyle: "italic", color: "#f0f0ff" }}>
+            <p style={{ color: "#6060a0", fontSize: 14, margin: "10px 0" }}>
               Against all probability, and certainly against all good taste,
               you've won. The dungeon is mildly impressed. Don't let it go to
               your head.
+            </p>
+            <p style={{ color: "#00b4ff", fontSize: 14 }}>
+              Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
             </p>
             <button
               type="button"
               onClick={resetGame}
               style={{
-                marginTop: 16,
-                padding: "10px 20px",
-                background: "#0a1f0a",
+                marginTop: 20,
                 border: "1px solid #00ff88",
                 color: "#00ff88",
+                background: "transparent",
                 borderRadius: 6,
+                padding: "8px 24px",
                 cursor: "pointer",
                 fontFamily: "inherit",
+                fontSize: 16,
               }}
             >
-              // RESTART
+              PLAY AGAIN
             </button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { DUNGEON, INIT_PLAYER } from "../game/dungeon";
 import {
   applyDamageToPlayer,
@@ -6,7 +6,6 @@ import {
   pickUpItem,
   movePlayer,
   changeEnemyMood,
-  checkWinCondition,
   checkDeathCondition,
 } from "../game/state";
 import { callGameMaster } from "../api/mistral";
@@ -88,7 +87,11 @@ export function useGame() {
           setTimeout(() => setIsTakingDamage(false), 300);
         }
         if (o.enemy_defeated && target) {
-          addLog("system", `${target} has been defeated.`);
+          if (target === "The Lich King") {
+            addLog("narrator", "The Lich King collapses with the weary dignity of someone who has been dramatically defeated approximately four thousand times. He seems almost relieved.");
+          } else {
+            addLog("system", `${target} has been defeated.`);
+          }
         }
         if (action_type === "pick_up") {
           const rawItem = o.item_obtained || target;
@@ -110,6 +113,10 @@ export function useGame() {
             nextPlayer = p;
             nextRooms = r;
             addLog("system", `Picked up: ${item}.`);
+            if (nextPlayer.inventory.includes("lich's crown")) {
+              setIsWon(true);
+              addLog("system", "You have claimed the lich's crown. Victory!");
+            }
           }
         }
         if (action_type === "move" && o.direction_moved) {
