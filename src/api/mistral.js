@@ -88,32 +88,22 @@ Rules:
  * Call Mistral game master. Returns parsed tool call result or throws.
  */
 export async function callGameMaster(playerSpeech, room, player) {
-  const key = import.meta.env.VITE_MISTRAL_KEY;
-  if (!key) throw new Error("VITE_MISTRAL_KEY is not set");
-
   const systemPrompt = buildSystemPrompt(room, player);
-  // ✅ MISTRAL SWAP COMPLETE
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+  const messages = [
+    { role: "user", content: playerSpeech },
+  ];
+
+  const res = await fetch("/api/game", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({
-      model: "mistral-large-latest",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: playerSpeech },
-      ],
-      tool_choice: "any",
-      tools: GAME_TOOLS,
-      max_tokens: 500,
-    }),
+    body: JSON.stringify({ messages, systemPrompt }),
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Mistral API ${res.status}: ${errText}`);
+    const err = await res.json();
+    throw new Error(err.error || `API error ${res.status}`);
   }
 
   const data = await res.json();
