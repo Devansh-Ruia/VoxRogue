@@ -27,9 +27,11 @@ export function SceneViewer({ imageSrc, isThinking, isTakingDamage, isDead, isWo
     }}>
       {/* Scene image */}
       {displayed && (
+// Find the <img> tag and add onError:
         <img
           src={displayed}
           alt="dungeon scene"
+          onError={() => setDisplayed(null)}
           style={{
             width: "100%",
             height: "100%",

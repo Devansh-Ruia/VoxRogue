@@ -1,22 +1,27 @@
-export function generateSceneImage(room, narration) {
-  // Strip all special characters before encoding — Pollinations
-  // chokes on apostrophes, em dashes, and smart quotes even when encoded
-  const clean = (str) => str
-    ? str.replace(/[''""—–]/g, " ").replace(/[^\w\s,.:!?]/g, "").trim()
-    : "";
-
-  const prompt = [
+export async function generateSceneImage(room, narration) {
+  // Keep prompt very short — Pollinations fails on long URLs
+  const parts = [
     "dark fantasy dungeon",
-    "neon indigo and purple lighting",
-    "cinematic moody atmosphere",
-    "detailed environment",
-    clean(room.name),
-    clean(room.desc).slice(0, 80),
-    clean(narration).slice(0, 60),
-  ].filter(Boolean).join(", ");
+    "neon purple lighting",
+    "cinematic",
+    room.name.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 30),
+  ];
+  if (narration) {
+    // Take only first 6 words of narration
+    const words = narration.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").slice(0, 6).join(" ");
+    if (words) parts.push(words);
+  }
 
-  const seed = Math.floor(Math.random() * 999999);
-  const encoded = encodeURIComponent(prompt);
+  const prompt = encodeURIComponent(parts.join(", "));
+  const seed   = Math.floor(Math.random() * 99999);
+  const url    = `https://image.pollinations.ai/prompt/${prompt}?width=768&height=432&seed=${seed}&nologo=true`;
 
-  return `https://image.pollinations.ai/prompt/${encoded}?width=768&height=432&seed=${seed}&model=flux&nologo=true&enhance=true`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
 }
