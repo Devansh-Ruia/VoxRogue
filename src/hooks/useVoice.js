@@ -102,5 +102,7 @@ export function useVoice() {
 
   useEffect(() => () => stopListening(), [stopListening]);
 
-  return { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript };
+  const clearFinalTranscript = useCallback(() => setFinalTranscript(""), []);
+
+  return { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript, clearFinalTranscript };
 }

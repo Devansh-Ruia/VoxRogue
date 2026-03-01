@@ -26,13 +26,14 @@ export function VoxRogue() {
     logColors,
   } = useGame();
 
-  const { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript } = useVoice();
+  const { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript, clearFinalTranscript } = useVoice();
 
   useEffect(() => {
     if (finalTranscript) {
       processAction(finalTranscript, elevenLabsKey, voiceOn);
+      clearFinalTranscript();
     }
-  }, [finalTranscript, processAction, elevenLabsKey, voiceOn]);
+  }, [finalTranscript]);
 
   const currentRoom = rooms[roomIdx];
   const disabled = isThinking || isDead || isWon;
