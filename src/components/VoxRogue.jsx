@@ -273,8 +273,7 @@ export function VoxRogue() {
               // SYSTEM OVERLOAD //
             </h2>
             <p style={{ fontStyle: "italic", color: "#f0f0ff" }}>
-              The dungeon adds your bones to its extensive collection. You
-              were, at minimum, memorable. Mostly as a cautionary tale.
+              The dungeon accepts your demise with grim satisfaction. Your futile struggles, now merely echoes. Perhaps next time, a slightly less embarrassing end.
             </p>
             <button
               type="button"

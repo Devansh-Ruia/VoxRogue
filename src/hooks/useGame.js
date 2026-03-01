@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useState } from "react";
 import { DUNGEON, INIT_PLAYER } from "../game/dungeon";
 import {
@@ -50,7 +51,8 @@ export function useGame() {
     setIsDead(false);
     setIsWon(false);
     setIsThinking(false);
-  }, []);
+    addLog("narrator", "Welcome, meatbag. Another fresh attempt to defy the inevitable. Let's see how long this one lasts.");
+  }, [addLog]);
 
   const processAction = useCallback(
     async (speech, elevenLabsKey, voiceOn) => {
@@ -90,7 +92,7 @@ export function useGame() {
           if (target === "The Lich King") {
             addLog("narrator", "The Lich King collapses with the weary dignity of someone who has been dramatically defeated approximately four thousand times. He seems almost relieved.");
           } else {
-            addLog("system", `${target} has been defeated.`);
+            addLog("system", `${target} ceases to be a problem. For now.`);
           }
         }
         if (action_type === "pick_up") {
@@ -112,10 +114,10 @@ export function useGame() {
             );
             nextPlayer = p;
             nextRooms = r;
-            addLog("system", `Picked up: ${item}.`);
+            addLog("system", `You acquire the ${item}. Try not to drop it. Or yourself.`);
             if (nextPlayer.inventory.includes("lich's crown")) {
               setIsWon(true);
-              addLog("system", "You have claimed the lich's crown. Victory!");
+              addLog("system", "The 'lich's crown' now graces your inventory. A hollow victory, but a victory nonetheless.");
             }
           }
         }
@@ -125,7 +127,7 @@ export function useGame() {
           if (newIdx != null) {
             setRoomIdx(newIdx);
             setVisitedRooms((prev) => new Set([...prev, newIdx]));
-            addLog("system", `You go ${dir}.`);
+            addLog("system", `You lumber ${dir}. The dungeon awaits your next questionable decision.`);
           }
         }
         if (o.mood_changed_to && target) {
@@ -135,7 +137,7 @@ export function useGame() {
             target,
             o.mood_changed_to
           );
-          addLog("system", `${target}'s mood: ${o.mood_changed_to}.`);
+          addLog("system", `The ${target} now appears ${o.mood_changed_to}. Your attempts at diplomacy are... noted.`);
         }
         if (action_type === "use_item" && target === "health potion") {
           const idx = nextPlayer.inventory?.indexOf("health potion");
@@ -147,7 +149,7 @@ export function useGame() {
               inventory: inv,
               hp: Math.min(nextPlayer.maxHp, (nextPlayer.hp ?? 0) + 30),
             };
-            addLog("system", "Used health potion. Restored 30 HP.");
+            addLog("system", "A 'health potion' grudgingly provides some respite. Don't get used to it.");
           }
         }
 
@@ -156,7 +158,7 @@ export function useGame() {
 
         if (checkDeathCondition(nextPlayer)) {
           setIsDead(true);
-          addLog("system", "You have died.");
+          addLog("system", "Ah, a familiar scent. You've met your ignoble end.");
         } else if (checkWinCondition(nextPlayer)) {
           setIsWon(true);
           addLog("system", "You have claimed the lich's crown. Victory!");
