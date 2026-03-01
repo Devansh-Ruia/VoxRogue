@@ -21,7 +21,6 @@ export function VoxRogue() {
     isDead,
     isWon,
     isThinking,
-    sceneImage,
     processAction,
     resetGame,
     logColors,
