@@ -9,20 +9,14 @@ export default async function handler(req, res) {
 
   try {
     const r = await fetch(
-      'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell/v1/images/generations',
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${hfKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt,
-          num_inference_steps: 4,
-          width: 768,
-          height: 432,
-          response_format: 'b64_json',
-        }),
+        body: JSON.stringify({ inputs: prompt }),
       }
     );
 
@@ -31,14 +25,10 @@ export default async function handler(req, res) {
       return res.status(r.status).json({ error: err });
     }
 
-    const data = await r.json();
-    const b64 = data?.data?.[0]?.b64_json;
-    if (!b64) return res.status(500).json({ error: 'No image in response' });
-
-    const buffer = Buffer.from(b64, 'base64');
+    const buffer = await r.arrayBuffer();
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 's-maxage=3600');
-    return res.status(200).send(buffer);
+    return res.status(200).send(Buffer.from(buffer));
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
