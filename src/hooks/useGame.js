@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { DUNGEON, INIT_PLAYER } from "../game/dungeon";
 import {
   applyDamageToPlayer,
@@ -10,7 +10,8 @@ import {
 } from "../game/state";
 import { callGameMaster } from "../api/mistral";
 import { speak } from "../api/elevenlabs";
-
+import { useAuth } from "./useAuth";
+import { useSave } from "./useSave";
 const LOG_COLORS = {
   player: "#7dd3fc",
   narrator: "#fde68a",
@@ -37,11 +38,15 @@ export function useGame() {
   const [isThinking, setIsThinking] = useState(false);
   const [isTakingDamage, setIsTakingDamage] = useState(false);
 
+  const { userId, isReady: authReady } = useAuth();
+  const { saveGame, loadGame, deleteSave, isSaving } = useSave();
+
   const addLog = useCallback((type, text) => {
     setLog((prev) => [...prev, { type, text }]);
   }, []);
 
-  const resetGame = useCallback(() => {
+  const resetGame = useCallback(async () => {
+    await deleteSave(userId);
     setPlayer({ ...INIT_PLAYER });
     setRooms(deepCloneDungeon());
     setRoomIdx(0);
@@ -51,7 +56,26 @@ export function useGame() {
     setIsWon(false);
     setIsThinking(false);
     addLog("narrator", "Welcome, meatbag. Another fresh attempt to defy the inevitable. Let's see how long this one lasts.");
-  }, [addLog]);
+  }, [addLog, deleteSave, userId]);
+
+  // Load game on mount
+  useEffect(() => {
+    if (authReady && userId) {
+      const fetchSave = async () => {
+        const savedGame = await loadGame(userId);
+        if (savedGame) {
+          setPlayer(savedGame.player_state);
+          setRooms(savedGame.rooms_state);
+          setRoomIdx(savedGame.room_idx);
+          setVisitedRooms(new Set(savedGame.rooms_state.map((_, i) => i))); // Mark all loaded rooms as visited
+          addLog("system", "A familiar chill. Your past self lives on. For better or worse.");
+        } else {
+          addLog("narrator", "Welcome, meatbag. Another fresh attempt to defy the inevitable. Let's see how long this one lasts.");
+        }
+      };
+      fetchSave();
+    }
+  }, [authReady, userId, loadGame, addLog]);
 
   const processAction = useCallback(
     async (speech, elevenLabsKey, voiceOn) => {
@@ -158,10 +182,12 @@ export function useGame() {
         if (checkDeathCondition(nextPlayer)) {
           setIsDead(true);
           addLog("system", "Ah, a familiar scent. You've met your ignoble end.");
-        } else if (checkWinCondition(nextPlayer)) {
-          setIsWon(true);
+        } else if (isWon) {
+          // Win condition is already handled by setIsWon above
           addLog("system", "You have claimed the lich's crown. Victory!");
         }
+        // Save game after every action
+        saveGame(userId, roomIdx, nextPlayer, nextRooms);
       } catch (err) {
         addLog(
           "system",
@@ -180,6 +206,8 @@ export function useGame() {
       player,
       addLog,
       setIsTakingDamage,
+      saveGame, // Add saveGame to dependencies
+      userId   // Add userId to dependencies
     ]
   );
 
@@ -196,5 +224,6 @@ export function useGame() {
     processAction,
     resetGame,
     logColors: LOG_COLORS,
+    isSaving, // Export isSaving state
   };
 }
