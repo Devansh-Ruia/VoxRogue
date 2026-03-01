@@ -4,21 +4,28 @@ export default async function handler(req, res) {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
-  const seed = Math.floor(Math.random() * 99999);
-  const encoded = encodeURIComponent(prompt);
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=432&seed=${seed}&nologo=true`;
+  const hfKey = process.env.HF_KEY;
+  if (!hfKey) return res.status(500).json({ error: 'HF_KEY not set' });
 
   try {
-    const r = await fetch(url, {
-      headers: {
-        // Identify as a server request, not a browser
-        'User-Agent': 'VoxRogue/1.0',
-        'Accept': 'image/*',
+    const r = await fetch(
+      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${hfKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { width: 768, height: 432, num_inference_steps: 4 },
+        }),
       }
-    });
+    );
 
     if (!r.ok) {
-      return res.status(r.status).json({ error: `Pollinations error ${r.status}` });
+      const err = await r.text();
+      return res.status(r.status).json({ error: err });
     }
 
     const buffer = await r.arrayBuffer();
