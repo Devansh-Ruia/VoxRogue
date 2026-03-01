@@ -1,127 +1,84 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@deepgram/sdk";
 
-const DEEPGRAM_API_KEY = import.meta.env.VITE_DEEPGRAM_KEY;
+const DEEPGRAM_KEY = import.meta.env.VITE_DEEPGRAM_KEY;
 
-/**
- * useVoice(onResult, onInterim, onError)
- * Returns: { isListening, startListening, stopListening, supported, interimTranscript }
- */
 export function useVoice() {
-  const [isListening, setIsListening] = useState(false);
+  const [isListening,       setIsListening]       = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
-  const [finalTranscript, setFinalTranscript] = useState(""); // New state for final transcript
-  const deepgramSocketRef = useRef(null);
-  const silenceTimerRef = useRef(null);
-  const lastTranscriptTimeRef = useRef(0);
+  const [finalTranscript,   setFinalTranscript]   = useState("");
 
-  const supported = Boolean(DEEPGRAM_API_KEY);
+  const socketRef    = useRef(null);
+  const recorderRef  = useRef(null);
+  const silenceTimer = useRef(null);
+  const lastSpeech   = useRef(0);
 
-  const startListening = useCallback(() => {
-    if (!DEEPGRAM_API_KEY) {
-      if (onError) onError("Deepgram API key is not configured.");
-      return;
-    }
-    if (isListening) return;
-
-    try {
-      const deepgram = createClient(DEEPGRAM_API_KEY);
-      const connection = deepgram.listen.live({
-        interim_results: true,
-        language: "en-US",
-        model: "nova-2",
-        smart_format: true,
-      });
-
-      connection.on("open", () => {
-        console.log("Deepgram connection opened.");
-        setIsListening(true);
-        setInterimTranscript("");
-        setFinalTranscript(""); // Clear final transcript on start
-        lastTranscriptTimeRef.current = Date.now();
-        // Start silence timer
-        silenceTimerRef.current = setInterval(() => {
-          if (Date.now() - lastTranscriptTimeRef.current > 2000) {
-            console.log("2 seconds of silence detected, stopping listening.");
-            stopListening();
-          }
-        }, 500); // Check every 500ms
-      });
-
-      connection.on("transcriptReceived", (message) => {
-        const data = JSON.parse(message);
-        const transcript = data.channel.alternatives[0].transcript;
-        const isFinal = data.is_final;
-
-        if (transcript) {
-          lastTranscriptTimeRef.current = Date.now(); // Reset silence timer
-          if (isFinal) {
-            setFinalTranscript(transcript); // Set final transcript
-            setInterimTranscript("");
-          } else {
-            setInterimTranscript(transcript);
-          }
-        }
-      });
-
-      connection.on("error", (err) => {
-        console.error("Deepgram error:", err);
-        // In a hook, we don't call an onError prop directly.
-        // Instead, we might expose an error state or log it.
-        stopListening(); // Ensure listening state is reset on error
-      });
-
-      connection.on("close", () => {
-        console.log("Deepgram connection closed.");
-        stopListening(); // Ensure listening state is reset on close
-      });
-
-      // Get microphone access and stream to Deepgram
-      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && connection.getReadyState() === 1) {
-            connection.send(event.data);
-          }
-        };
-        mediaRecorder.start(250); // Send data every 250ms
-        deepgramSocketRef.current = connection;
-      }).catch((err) => {
-        console.error("Microphone access error:", err);
-        // Expose error state or log it
-        setIsListening(false);
-      });
-
-    } catch (err) {
-      console.error("Failed to start Deepgram listening:", err);
-      // Expose error state or log it
-      setIsListening(false);
-    }
-  }, [isListening, stopListening]); // Removed onResult, onInterim, onError from dependencies
+  const supported = Boolean(DEEPGRAM_KEY);
 
   const stopListening = useCallback(() => {
-    if (deepgramSocketRef.current) {
-      try {
-        deepgramSocketRef.current.finish(); // Close Deepgram connection
-      } catch (e) {
-        console.error("Error closing Deepgram connection:", e);
-      }
-      deepgramSocketRef.current = null;
-    }
-    if (silenceTimerRef.current) {
-      clearInterval(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
+    if (silenceTimer.current) { clearInterval(silenceTimer.current); silenceTimer.current = null; }
+    if (recorderRef.current)  { try { recorderRef.current.stop(); } catch (_) {} recorderRef.current = null; }
+    if (socketRef.current)    { try { socketRef.current.close(); } catch (_) {} socketRef.current = null; }
     setIsListening(false);
     setInterimTranscript("");
   }, []);
 
-  // Cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      stopListening();
+  const startListening = useCallback(() => {
+    if (!DEEPGRAM_KEY || isListening) return;
+
+    const ws = new WebSocket(
+      `wss://api.deepgram.com/v1/listen?model=nova-2&language=en-US&interim_results=true&smart_format=true`,
+      ["token", DEEPGRAM_KEY]
+    );
+    socketRef.current = ws;
+
+    ws.onopen = () => {
+      setIsListening(true);
+      setInterimTranscript("");
+      setFinalTranscript("");
+      lastSpeech.current = Date.now();
+
+      // silence detection
+      silenceTimer.current = setInterval(() => {
+        if (Date.now() - lastSpeech.current > 2000) stopListening();
+      }, 500);
+
+      // mic stream
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((stream) => {
+          const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+          recorderRef.current = recorder;
+          recorder.ondataavailable = (e) => {
+            if (e.data.size > 0 && ws.readyState === WebSocket.OPEN) ws.send(e.data);
+          };
+          recorder.start(250);
+        })
+        .catch((err) => {
+          console.error("Mic access error:", err);
+          stopListening();
+        });
     };
-  }, [stopListening]);
+
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        const t = data?.channel?.alternatives?.[0]?.transcript;
+        if (!t) return;
+        lastSpeech.current = Date.now();
+        if (data.is_final) {
+          setFinalTranscript(t);
+          setInterimTranscript("");
+        } else {
+          setInterimTranscript(t);
+        }
+      } catch (_) {}
+    };
+
+    ws.onerror = (err) => { console.error("Deepgram WS error:", err); stopListening(); };
+    ws.onclose = ()    => { stopListening(); };
+
+  }, [isListening, stopListening]);
+
+  useEffect(() => () => stopListening(), [stopListening]);
 
   return { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript };
 }
