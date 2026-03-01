@@ -5,15 +5,18 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     include: ['@supabase/supabase-js'],
+    esbuildOptions: {
+      target: 'es2020',
+    },
   },
   build: {
-    commonjsOptions: {
-      include: [/@supabase\/supabase-js/, /node_modules/],
-    },
+    target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: {
-          supabase: ['@supabase/supabase-js'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
         },
       },
     },
