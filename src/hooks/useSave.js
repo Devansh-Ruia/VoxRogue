@@ -1,69 +1,33 @@
-import { useState, useCallback, useRef } from "react";
-import { getSupabase } from "../lib/supabase";
+import { useCallback, useRef, useState } from "react";
+import { saveGameREST, loadGameREST, deleteGameREST } from "../lib/supabase";
 
-const DEBOUNCE_TIME = 2000; // 2 seconds
+const DEBOUNCE = 2000;
 
 export function useSave() {
   const [isSaving, setIsSaving] = useState(false);
-  const debounceTimer = useRef(null);
+  const timer = useRef(null);
 
-  const saveGame = useCallback(
-    async (userId, roomIdx, playerState, roomsState) => {
-      if (!userId) return;
+  const saveGame = useCallback((jwt, userId, roomIdx, player, rooms) => {
+    if (!userId || !jwt) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
       setIsSaving(true);
-
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-
-      debounceTimer.current = setTimeout(async () => {
-        const { data, error } = await getSupabase().from("game_saves").upsert(
-          {
-            user_id: userId,
-            room_idx: roomIdx,
-            player_state: playerState,
-            rooms_state: roomsState,
-          },
-          { onConflict: "user_id" }
-        );
-
-        if (error) {
-          console.error("Error saving game:", error);
-        } else {
-          console.log("Game saved successfully:", data);
-        }
-        setIsSaving(false);
-      }, DEBOUNCE_TIME);
-    },
-    []
-  );
-
-  const loadGame = useCallback(async (userId) => {
-    if (!userId) return null;
-    const { data, error } = await supabase
-      .from("game_saves")
-      .select("room_idx, player_state, rooms_state")
-      .eq("user_id", userId)
-      .single();
-
-    if (error && error.code !== "PGRST116") { // PGRST116 means no rows found
-      console.error("Error loading game:", error);
-      return null;
-    }
-    return data;
+      try { await saveGameREST(jwt, userId, roomIdx, player, rooms); }
+      catch (e) { console.error("Save failed:", e); }
+      finally { setIsSaving(false); }
+    }, DEBOUNCE);
   }, []);
 
-  const deleteSave = useCallback(async (userId) => {
-    if (!userId) return;
-    const { error } = await supabase
-      .from("game_saves")
-      .delete()
-      .eq("user_id", userId);
-    if (error) {
-      console.error("Error deleting save:", error);
-    } else {
-      console.log("Game save deleted for user:", userId);
-    }
+  const loadGame = useCallback(async (jwt, userId) => {
+    if (!userId || !jwt) return null;
+    try { return await loadGameREST(jwt, userId); }
+    catch (e) { console.error("Load failed:", e); return null; }
+  }, []);
+
+  const deleteSave = useCallback(async (jwt, userId) => {
+    if (!userId || !jwt) return;
+    try { await deleteGameREST(jwt, userId); }
+    catch (e) { console.error("Delete failed:", e); }
   }, []);
 
   return { saveGame, loadGame, deleteSave, isSaving };
