@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGame } from "../hooks/useGame";
 import { useVoice } from "../hooks/useVoice";
 import { GameLog } from "./GameLog";
 import { DungeonMap } from "./DungeonMap";
 import { StatusPanel } from "./StatusPanel";
 import { VoiceInput } from "./VoiceInput";
+import { SceneViewer } from "./SceneViewer";
 
 export function VoxRogue() {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -20,46 +21,46 @@ export function VoxRogue() {
     isDead,
     isWon,
     isThinking,
-    isTakingDamage,
+    sceneImage,
     processAction,
     resetGame,
     logColors,
   } = useGame();
 
-  const { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript, clearFinalTranscript } = useVoice();
+  const handleSpeech = (speech) => {
+    processAction(speech, elevenLabsKey, voiceOn);
+  };
 
-  useEffect(() => {
-    if (finalTranscript) {
-      processAction(finalTranscript, elevenLabsKey, voiceOn);
-      clearFinalTranscript();
+  const { isListening, startListening, stopListening, supported } = useVoice(
+    handleSpeech,
+    (err) => {
+      if (err && err !== "aborted") {
+        processAction(
+          "[Voice error: " + err + ". Use text input.]",
+          elevenLabsKey,
+          false
+        );
+      }
     }
-  }, [finalTranscript]);
+  );
 
   const currentRoom = rooms[roomIdx];
   const disabled = isThinking || isDead || isWon;
+  const isTakingDamage = false; // TODO: implement damage detection logic
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "radial-gradient(ellipse at 20% 50%, #0d0d22, #080810)",
-        color: "#f0f0ff",
-        fontFamily: "'Space Mono', 'Courier New', monospace",
+        background: "#0a0a0a",
+        color: "#e2e8f0",
+        fontFamily: "'Courier New', monospace",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         padding: 16,
       }}
     >
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          background: "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)",
-          zIndex: 999,
-        }}
-      ></div>
       <div style={{ width: "100%", maxWidth: 860 }}>
         <header
           style={{
@@ -69,12 +70,9 @@ export function VoxRogue() {
             marginBottom: 16,
           }}
         >
-          <h1 style={{ color: "#f0f0ff", margin: 0, fontSize: 24, letterSpacing: 10, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
-            VOXROGUE
+          <h1 style={{ color: "#fde68a", margin: 0, fontSize: 24 }}>
+            ⚔️ VOXROGUE
           </h1>
-          <div style={{ color: "#2a2a50", fontSize: 10 }}>
-            // DUNGEON_SYS v0.1 // MISTRAL_ENGINE // VOICE_INPUT_ACTIVE
-          </div>
           <button
             type="button"
             onClick={() => setSettingsOpen((s) => !s)}
@@ -143,6 +141,13 @@ export function VoxRogue() {
           }}
         >
           <div>
+            <SceneViewer
+              imageSrc={sceneImage}
+              isThinking={isThinking}
+              isTakingDamage={isTakingDamage}
+              isDead={isDead}
+              isWon={isWon}
+            />
             <GameLog
               log={log}
               isThinking={isThinking}
@@ -159,21 +164,16 @@ export function VoxRogue() {
           isListening={isListening}
           onStartListening={startListening}
           onStopListening={stopListening}
-          onSubmitText={(text) => processAction(text, elevenLabsKey, voiceOn)}
+          onSubmitText={handleSpeech}
           supported={supported}
           disabled={disabled}
-          interimTranscript={interimTranscript}
         />
 
         <div
           style={{
             marginTop: 12,
             fontSize: 12,
-            color: "#2a2a50",
-            textAlign: "center",
-            textTransform: "uppercase",
-            letterSpacing: 2,
-            lineHeight: 1.6,
+            color: "#64748b",
           }}
         >
           "attack the goblin" · "reason with the guard" · "pick up the key" ·
@@ -186,54 +186,49 @@ export function VoxRogue() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,8,4,0.96)",
+            background: "rgba(0,0,0,0.85)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 100,
+            zIndex: 10,
           }}
         >
           <div
             style={{
+              background: "#0a0f0a",
+              border: "2px solid #14532d",
+              borderRadius: 8,
+              padding: 32,
+              maxWidth: 420,
               textAlign: "center",
             }}
           >
-            <h2
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                fontWeight: 700,
-                fontSize: 64,
-                color: "#00ff88",
-                textShadow: "0 0 40px #00ff8866",
-                margin: 0,
-              }}
-            >
-              VICTORY
+            <h2 style={{ color: "#fde68a", marginTop: 0 }}>
+              ☠️ THE DUNGEON IS CONQUERED
             </h2>
-            <p style={{ color: "#6060a0", fontSize: 14, margin: "10px 0" }}>
+            <p style={{ color: "#94a3b8" }}>
+              Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
+            </p>
+            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
               Against all probability, and certainly against all good taste,
               you've won. The dungeon is mildly impressed. Don't let it go to
               your head.
-            </p>
-            <p style={{ color: "#00b4ff", fontSize: 14 }}>
-              Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
             </p>
             <button
               type="button"
               onClick={resetGame}
               style={{
-                marginTop: 20,
-                border: "1px solid #00ff88",
-                color: "#00ff88",
-                background: "transparent",
+                marginTop: 16,
+                padding: "10px 20px",
+                background: "#14532d",
+                border: "1px solid #166534",
+                color: "#e2e8f0",
                 borderRadius: 6,
-                padding: "8px 24px",
                 cursor: "pointer",
                 fontFamily: "inherit",
-                fontSize: 16,
               }}
             >
-              PLAY AGAIN
+              Play Again
             </button>
           </div>
         </div>
@@ -253,20 +248,20 @@ export function VoxRogue() {
         >
           <div
             style={{
-              background: "#100a0a",
-              border: "2px solid #ff2244",
+              background: "#0f0a0a",
+              border: "2px solid #7f1d1d",
               borderRadius: 8,
               padding: 32,
               maxWidth: 420,
               textAlign: "center",
-              boxShadow: "0 0 20px #ff224444",
             }}
           >
-            <h2 style={{ color: "#ff2244", marginTop: 0, fontSize: 28 }}>
-              // SYSTEM OVERLOAD //
+            <h2 style={{ color: "#f87171", marginTop: 0 }}>
+              ☠️ YOU HAVE DIED
             </h2>
-            <p style={{ fontStyle: "italic", color: "#f0f0ff" }}>
-              The dungeon accepts your demise with grim satisfaction. Your futile struggles, now merely echoes. Perhaps next time, a slightly less embarrassing end.
+            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
+              The dungeon adds your bones to its extensive collection. You
+              were, at minimum, memorable. Mostly as a cautionary tale.
             </p>
             <button
               type="button"
@@ -274,30 +269,18 @@ export function VoxRogue() {
               style={{
                 marginTop: 16,
                 padding: "10px 20px",
-                background: "#1f0a0a",
-                border: "1px solid #ff2244",
-                color: "#ff2244",
+                background: "#7f1d1d",
+                border: "1px solid #991b1b",
+                color: "#e2e8f0",
                 borderRadius: 6,
                 cursor: "pointer",
                 fontFamily: "inherit",
               }}
             >
-              // RESTART
+              Try Again
             </button>
           </div>
         </div>
-      )}
-
-      {isTakingDamage && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            pointerEvents: "none",
-            zIndex: 999,
-            animation: "damage-flash 0.3s ease-out",
-          }}
-        ></div>
       )}
     </div>
   );

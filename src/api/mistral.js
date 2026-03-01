@@ -88,22 +88,32 @@ Rules:
  * Call Mistral game master. Returns parsed tool call result or throws.
  */
 export async function callGameMaster(playerSpeech, room, player) {
-  const systemPrompt = buildSystemPrompt(room, player);
-  const messages = [
-    { role: "user", content: playerSpeech },
-  ];
+  const key = import.meta.env.VITE_MISTRAL_KEY;
+  if (!key) throw new Error("VITE_MISTRAL_KEY is not set");
 
-  const res = await fetch("/api/game", {
+  const systemPrompt = buildSystemPrompt(room, player);
+  // ✅ MISTRAL SWAP COMPLETE
+  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({ messages, systemPrompt }),
+    body: JSON.stringify({
+      model: "mistral-large-latest",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: playerSpeech },
+      ],
+      tool_choice: "any",
+      tools: GAME_TOOLS,
+      max_tokens: 500,
+    }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || `API error ${res.status}`);
+    const errText = await res.text();
+    throw new Error(`Mistral API ${res.status}: ${errText}`);
   }
 
   const data = await res.json();
@@ -112,12 +122,7 @@ export async function callGameMaster(playerSpeech, room, player) {
   if (!toolCalls?.length) throw new Error("No tool call in response");
   const argsStr = toolCalls[0].function?.arguments;
   if (!argsStr) throw new Error("Empty tool arguments");
-  let parsed;
-  try {
-    parsed = JSON.parse(argsStr);
-  } catch {
-    throw new Error("Game master returned an unreadable response. Try again.");
-  }
+  const parsed = JSON.parse(argsStr);
   return {
     action_type: parsed.action_type,
     target: parsed.target,

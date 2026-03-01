@@ -13,10 +13,10 @@ export function GameLog({ log, isThinking, logColors }) {
         height: 400,
         overflowY: "auto",
         padding: 12,
-        background: "transparent",
-        border: "none",
-        borderRadius: 0,
-        fontFamily: "'Space Mono', monospace",
+        background: "#0f0f0f",
+        border: "1px solid #333",
+        borderRadius: 4,
+        fontFamily: "Courier New, monospace",
         fontSize: 14,
       }}
     >
@@ -25,32 +25,12 @@ export function GameLog({ log, isThinking, logColors }) {
           key={i}
           style={{
             marginBottom: 8,
-            paddingLeft: 12,
-            borderLeft: `3px solid ${
+            color: logColors?.[entry.type] ?? "#e2e8f0",
+            borderLeft:
               entry.type === "narrator"
-                ? "#ffaa00"
-                : entry.type === "combat"
-                ? "#ff2244"
-                : entry.type === "player"
-                ? "#4040ff"
-                : entry.type === "system"
-                ? "#c060ff"
-                : "transparent"
-            }`,
-            color:
-              entry.type === "player"
-                ? "#8888ff"
-                : entry.type === "system"
-                ? "#9060cc"
-                : entry.type === "narrator"
-                ? "#ffaa00"
-                : "#f0f0ff",
-            boxShadow:
-              entry.type === "narrator"
-                ? "0 0 8px #ffaa0044, 0 0 20px #ffaa0022"
-                : "none",
-            animation: "log-entry 0.15s ease-out",
-            background: entry.type === "narrator" ? "transparent" : "none",
+                ? "2px solid #451a03"
+                : "2px solid transparent",
+            paddingLeft: entry.type === "narrator" ? 8 : 0,
           }}
         >
           {entry.text}
@@ -59,12 +39,12 @@ export function GameLog({ log, isThinking, logColors }) {
       {isThinking && (
         <div
           style={{
-            color: "#2a2a50",
-            fontStyle: "normal",
+            color: "#94a3b8",
+            fontStyle: "italic",
             animation: "pulse 1.2s ease-in-out infinite",
           }}
         >
-          // processing <span style={{ animation: "dot-blink 1s infinite step-end" }}>...</span>
+          The dungeon master considers your fate...
         </div>
       )}
       <div ref={bottomRef} />

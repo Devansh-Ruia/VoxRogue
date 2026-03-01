@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { DUNGEON, INIT_PLAYER } from "../game/dungeon";
 import {
   applyDamageToPlayer,
@@ -6,12 +6,13 @@ import {
   pickUpItem,
   movePlayer,
   changeEnemyMood,
+  checkWinCondition,
   checkDeathCondition,
 } from "../game/state";
 import { callGameMaster } from "../api/mistral";
 import { speak } from "../api/elevenlabs";
-import { useAuth } from "./useAuth";
-import { useSave } from "./useSave";
+import { generateSceneImage } from "../api/imageGen";
+
 const LOG_COLORS = {
   player: "#7dd3fc",
   narrator: "#fde68a",
@@ -36,17 +37,13 @@ export function useGame() {
   const [isDead, setIsDead] = useState(false);
   const [isWon, setIsWon] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [isTakingDamage, setIsTakingDamage] = useState(false);
-
-  const { userId, jwt, isReady: authReady } = useAuth();
-  const { saveGame, loadGame, deleteSave, isSaving } = useSave();
+  const [sceneImage, setSceneImage] = useState(null);
 
   const addLog = useCallback((type, text) => {
     setLog((prev) => [...prev, { type, text }]);
   }, []);
 
-  const resetGame = useCallback(async () => {
-    await deleteSave(jwt, userId);
+  const resetGame = useCallback(() => {
     setPlayer({ ...INIT_PLAYER });
     setRooms(deepCloneDungeon());
     setRoomIdx(0);
@@ -55,27 +52,8 @@ export function useGame() {
     setIsDead(false);
     setIsWon(false);
     setIsThinking(false);
-    addLog("narrator", "Welcome, meatbag. Another fresh attempt to defy the inevitable. Let's see how long this one lasts.");
-  }, [addLog, deleteSave, userId]);
-
-  // Load game on mount
-  useEffect(() => {
-    if (authReady && userId) {
-      const fetchSave = async () => {
-        const savedGame = await loadGame(jwt, userId);
-        if (savedGame) {
-          setPlayer(savedGame.player_state);
-          setRooms(savedGame.rooms_state);
-          setRoomIdx(savedGame.room_idx);
-          setVisitedRooms(new Set(savedGame.rooms_state.map((_, i) => i))); // Mark all loaded rooms as visited
-          addLog("system", "A familiar chill. Your past self lives on. For better or worse.");
-        } else {
-          addLog("narrator", "Welcome, meatbag. Another fresh attempt to defy the inevitable. Let's see how long this one lasts.");
-        }
-      };
-      fetchSave();
-    }
-  }, [authReady, userId, loadGame, addLog]);
+    setSceneImage(null);
+  }, []);
 
   const processAction = useCallback(
     async (speech, elevenLabsKey, voiceOn) => {
@@ -93,6 +71,11 @@ export function useGame() {
         addLog("narrator", narration || "The dungeon master shrugs.");
         speak(narration, elevenLabsKey, voiceOn);
 
+        // fire and forget — don't await
+        generateSceneImage(currentRoom, action_type, narration).then(img => {
+          if (img) setSceneImage(img);
+        });
+
         let nextPlayer = { ...player };
         let nextRooms = [...rooms];
 
@@ -108,15 +91,9 @@ export function useGame() {
         if (o.damage_taken != null && o.damage_taken > 0) {
           nextPlayer = applyDamageToPlayer(nextPlayer, o.damage_taken);
           addLog("combat", `You take ${o.damage_taken} damage.`);
-          setIsTakingDamage(true);
-          setTimeout(() => setIsTakingDamage(false), 300);
         }
         if (o.enemy_defeated && target) {
-          if (target === "The Lich King") {
-            addLog("narrator", "The Lich King collapses with the weary dignity of someone who has been dramatically defeated approximately four thousand times. He seems almost relieved.");
-          } else {
-            addLog("system", `${target} ceases to be a problem. For now.`);
-          }
+          addLog("system", `${target} has been defeated.`);
         }
         if (action_type === "pick_up") {
           const rawItem = o.item_obtained || target;
@@ -137,11 +114,7 @@ export function useGame() {
             );
             nextPlayer = p;
             nextRooms = r;
-            addLog("system", `You acquire the ${item}. Try not to drop it. Or yourself.`);
-            if (nextPlayer.inventory.includes("lich's crown")) {
-              setIsWon(true);
-              addLog("system", "The 'lich's crown' now graces your inventory. A hollow victory, but a victory nonetheless.");
-            }
+            addLog("system", `Picked up: ${item}.`);
           }
         }
         if (action_type === "move" && o.direction_moved) {
@@ -150,7 +123,7 @@ export function useGame() {
           if (newIdx != null) {
             setRoomIdx(newIdx);
             setVisitedRooms((prev) => new Set([...prev, newIdx]));
-            addLog("system", `You lumber ${dir}. The dungeon awaits your next questionable decision.`);
+            addLog("system", `You go ${dir}.`);
           }
         }
         if (o.mood_changed_to && target) {
@@ -160,7 +133,7 @@ export function useGame() {
             target,
             o.mood_changed_to
           );
-          addLog("system", `The ${target} now appears ${o.mood_changed_to}. Your attempts at diplomacy are... noted.`);
+          addLog("system", `${target}'s mood: ${o.mood_changed_to}.`);
         }
         if (action_type === "use_item" && target === "health potion") {
           const idx = nextPlayer.inventory?.indexOf("health potion");
@@ -172,7 +145,7 @@ export function useGame() {
               inventory: inv,
               hp: Math.min(nextPlayer.maxHp, (nextPlayer.hp ?? 0) + 30),
             };
-            addLog("system", "A 'health potion' grudgingly provides some respite. Don't get used to it.");
+            addLog("system", "Used health potion. Restored 30 HP.");
           }
         }
 
@@ -181,13 +154,11 @@ export function useGame() {
 
         if (checkDeathCondition(nextPlayer)) {
           setIsDead(true);
-          addLog("system", "Ah, a familiar scent. You've met your ignoble end.");
-        } else if (isWon) {
-          // Win condition is already handled by setIsWon above
+          addLog("system", "You have died.");
+        } else if (checkWinCondition(nextPlayer)) {
+          setIsWon(true);
           addLog("system", "You have claimed the lich's crown. Victory!");
         }
-        // Save game after every action
-        saveGame(jwt, userId, roomIdx, nextPlayer, nextRooms);
       } catch (err) {
         addLog(
           "system",
@@ -205,10 +176,6 @@ export function useGame() {
       roomIdx,
       player,
       addLog,
-      setIsTakingDamage,
-      saveGame, // Add saveGame to dependencies
-      userId,   // Add userId to dependencies
-      jwt,      // Add jwt to dependencies
     ]
   );
 
@@ -221,10 +188,9 @@ export function useGame() {
     isDead,
     isWon,
     isThinking,
-    isTakingDamage,
+    sceneImage,
     processAction,
     resetGame,
     logColors: LOG_COLORS,
-    isSaving, // Export isSaving state
   };
 }

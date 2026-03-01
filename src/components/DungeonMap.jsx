@@ -14,14 +14,14 @@ export function DungeonMap({ rooms, roomIdx, visitedRooms }) {
     <div
       style={{
         padding: 8,
-        background: "#0e0e1a",
-        border: "1px solid #1e1e35",
-        borderRadius: 8,
-        fontFamily: "'Space Mono', monospace",
+        background: "#0f0f0f",
+        border: "1px solid #333",
+        borderRadius: 4,
+        fontFamily: "Courier New, monospace",
         fontSize: 13,
       }}
     >
-      <div style={{ marginBottom: 6, color: "#2a2a50", fontSize: 9, letterSpacing: 4 }}>// MAP</div>
+      <div style={{ marginBottom: 6, color: "#94a3b8" }}>Map</div>
       {rooms.map((r, i) => {
         const isCurrent = i === roomIdx;
         const alive = (r.enemies || []).filter((e) => (e.hp ?? e.maxHp) > 0);
@@ -32,23 +32,16 @@ export function DungeonMap({ rooms, roomIdx, visitedRooms }) {
             style={{
               padding: "6px 8px",
               marginBottom: 4,
-              background: "transparent",
-              border: "none",
-              borderLeft: isCurrent ? "3px solid #4040ff" : "3px solid #1e1e35",
-              boxShadow: isCurrent ? "inset 0 0 20px #4040ff0a" : "none",
-              borderRadius: 8,
-              color: isLocked ? "#2a2a50" : "#f0f0ff",
+              background: isCurrent ? "#1a0f00" : "transparent",
+              border: isCurrent ? "1px solid #fde68a" : "1px solid transparent",
+              borderRadius: 4,
+              color: isLocked ? "#475569" : "#e2e8f0",
             }}
           >
-            <span style={{ marginRight: 6 }}>
-              {r.name === "Entrance Hall" && "ENT"}
-              {r.name === "Guard Room" && "GRD"}
-              {r.name === "Treasury" && "TRS"}
-              {r.name === "Lich's Lair" && "LCH"}
-            </span>
+            <span style={{ marginRight: 6 }}>{isLocked ? "🔒" : r.icon}</span>
             <span>{r.name}</span>
             {!isLocked && alive.length > 0 && (
-              <span style={{ marginLeft: 8, color: "#ff2244" }}>
+              <span style={{ marginLeft: 8, color: "#7f1d1d" }}>
                 ⚠ {alive.length} enemy{alive.length !== 1 ? "s" : ""}
               </span>
             )}
