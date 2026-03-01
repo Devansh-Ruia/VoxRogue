@@ -38,6 +38,7 @@ export function useGame() {
   const [isWon, setIsWon] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [sceneImage, setSceneImage] = useState(null);
+  const [isTakingDamage, setIsTakingDamage] = useState(false);
 
   const addLog = useCallback((type, text) => {
     setLog((prev) => [...prev, { type, text }]);
@@ -89,6 +90,8 @@ export function useGame() {
           addLog("combat", `You deal ${o.damage_dealt} damage to ${target}.`);
         }
         if (o.damage_taken != null && o.damage_taken > 0) {
+          setIsTakingDamage(true);
+setTimeout(() => setIsTakingDamage(false), 300);
           nextPlayer = applyDamageToPlayer(nextPlayer, o.damage_taken);
           addLog("combat", `You take ${o.damage_taken} damage.`);
         }
@@ -191,6 +194,7 @@ export function useGame() {
     sceneImage,
     processAction,
     resetGame,
+    isTakingDamage,
     logColors: LOG_COLORS,
   };
 }

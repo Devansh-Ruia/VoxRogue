@@ -25,29 +25,23 @@ export function VoxRogue() {
     processAction,
     resetGame,
     logColors,
+    isTakingDamage,
   } = useGame();
 
   const handleSpeech = (speech) => {
     processAction(speech, elevenLabsKey, voiceOn);
   };
 
-  const { isListening, startListening, stopListening, supported } = useVoice(
-    handleSpeech,
-    (err) => {
-      if (err && err !== "aborted") {
-        processAction(
-          "[Voice error: " + err + ". Use text input.]",
-          elevenLabsKey,
-          false
-        );
-      }
+  const { isListening, startListening, stopListening, supported, finalTranscript, clearFinalTranscript } = useVoice();
+  useEffect(() => {
+    if (finalTranscript) {
+      processAction(finalTranscript, elevenLabsKey, voiceOn);
+      clearFinalTranscript();
     }
-  );
+  }, [finalTranscript]); // eslint-disable-line
 
   const currentRoom = rooms[roomIdx];
   const disabled = isThinking || isDead || isWon;
-  const isTakingDamage = false; // TODO: implement damage detection logic
-
   return (
     <React.Fragment>
       {/* Scanline overlay */}
