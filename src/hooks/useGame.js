@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { useState } from "react";
 import { DUNGEON, INIT_PLAYER } from "../game/dungeon";
 import {
   applyDamageToPlayer,
