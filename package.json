@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.3",
-    "@supabase/supabase-js": "^2.98.0",
+    "@supabase/supabase-js": "^2.38.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
