@@ -38,7 +38,7 @@ export function useGame() {
   const [isThinking, setIsThinking] = useState(false);
   const [isTakingDamage, setIsTakingDamage] = useState(false);
 
-  const { userId, isReady: authReady } = useAuth();
+  const { userId, jwt, isReady: authReady } = useAuth();
   const { saveGame, loadGame, deleteSave, isSaving } = useSave();
 
   const addLog = useCallback((type, text) => {
@@ -46,7 +46,7 @@ export function useGame() {
   }, []);
 
   const resetGame = useCallback(async () => {
-    await deleteSave(userId);
+    await deleteSave(jwt, userId);
     setPlayer({ ...INIT_PLAYER });
     setRooms(deepCloneDungeon());
     setRoomIdx(0);
@@ -62,7 +62,7 @@ export function useGame() {
   useEffect(() => {
     if (authReady && userId) {
       const fetchSave = async () => {
-        const savedGame = await loadGame(userId);
+        const savedGame = await loadGame(jwt, userId);
         if (savedGame) {
           setPlayer(savedGame.player_state);
           setRooms(savedGame.rooms_state);
@@ -187,7 +187,7 @@ export function useGame() {
           addLog("system", "You have claimed the lich's crown. Victory!");
         }
         // Save game after every action
-        saveGame(userId, roomIdx, nextPlayer, nextRooms);
+        saveGame(jwt, userId, roomIdx, nextPlayer, nextRooms);
       } catch (err) {
         addLog(
           "system",
@@ -207,7 +207,8 @@ export function useGame() {
       addLog,
       setIsTakingDamage,
       saveGame, // Add saveGame to dependencies
-      userId   // Add userId to dependencies
+      userId,   // Add userId to dependencies
+      jwt,      // Add jwt to dependencies
     ]
   );
 
