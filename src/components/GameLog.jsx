@@ -50,6 +50,7 @@ export function GameLog({ log, isThinking, logColors }) {
                 ? "0 0 8px #ffaa0044, 0 0 20px #ffaa0022"
                 : "none",
             animation: "log-entry 0.15s ease-out",
+            background: entry.type === "narrator" ? "transparent" : "none",
           }}
         >
           {entry.text}

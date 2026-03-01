@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { DUNGEON } from "../game/dungeon";
+
 export function StatusPanel({ player, room }) {
   const hpPct = ((player.hp ?? player.maxHp) / (player.maxHp || 1)) * 100;
   const hpColor =
@@ -121,7 +124,28 @@ export function StatusPanel({ player, room }) {
       {loot.length > 0 && (
         <section>
           <div style={{ color: "#2a2a50", marginBottom: 4, fontSize: 9, letterSpacing: 4 }}>// LOOT</div>
-          <div>{loot.join(", ")}</div>
+          <div style={{ display: "inline-flex", gap: 4, flexWrap: "wrap" }}>
+            {loot.length
+              ? loot.map((item, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      display: "inline-block",
+                      background: "#12121f",
+                      border: "1px solid #1e1e35",
+                      borderRadius: "4px",
+                      padding: "2px 8px",
+                      fontSize: "11px",
+                      color: "#6060a0",
+                      marginRight: "4px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {item}
+                  </span>
+                ))
+              : "—"}
+          </div>
         </section>
       )}
 
@@ -131,7 +155,7 @@ export function StatusPanel({ player, room }) {
           {(exits || []).map((exit) => (
             <div key={exit} style={{ color: "#6060a0", marginBottom: 4 }}>
               {exit === "north" && "↑"} {exit === "east" && "→"}{" "}
-              {exit === "south" && "↓"} {exit === "west" && "←"} {room.exits[exit]}
+              {exit === "south" && "↓"} {exit === "west" && "←"} {DUNGEON[room.exits[exit]].name}
             </div>
           ))}
         </div>
