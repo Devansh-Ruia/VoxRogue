@@ -11,7 +11,6 @@ import {
 } from "../game/state";
 import { callGameMaster } from "../api/mistral";
 import { speak } from "../api/elevenlabs";
-import { generateSceneImage } from "../api/imageGen";
 
 const LOG_COLORS = {
   player: "#7dd3fc",
@@ -37,7 +36,6 @@ export function useGame() {
   const [isDead, setIsDead] = useState(false);
   const [isWon, setIsWon] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [sceneImage, setSceneImage] = useState(null);
   const [isTakingDamage, setIsTakingDamage] = useState(false);
 
   const addLog = useCallback((type, text) => {
@@ -72,10 +70,6 @@ export function useGame() {
         addLog("narrator", narration || "The dungeon master shrugs.");
         speak(narration, elevenLabsKey, voiceOn);
 
-        // fire and forget — don't await
-        generateSceneImage(currentRoom, narration)
-          .then(url => { if (url) setSceneImage(url); })
-          .catch(() => {}); // swallow silently
         let nextPlayer = { ...player };
         let nextRooms = [...rooms];
 
