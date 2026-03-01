@@ -26,22 +26,13 @@ export function VoxRogue() {
     logColors,
   } = useGame();
 
-  const handleSpeech = (speech) => {
-    processAction(speech, elevenLabsKey, voiceOn);
-  };
+  const { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript } = useVoice();
 
-  const { isListening, startListening, stopListening, supported } = useVoice(
-    handleSpeech,
-    (err) => {
-      if (err && err !== "aborted") {
-        processAction(
-          "[Voice error: " + err + ". Use text input.]",
-          elevenLabsKey,
-          false
-        );
-      }
+  useEffect(() => {
+    if (finalTranscript) {
+      processAction(finalTranscript, elevenLabsKey, voiceOn);
     }
-  );
+  }, [finalTranscript, processAction, elevenLabsKey, voiceOn]);
 
   const currentRoom = rooms[roomIdx];
   const disabled = isThinking || isDead || isWon;
@@ -167,9 +158,10 @@ export function VoxRogue() {
           isListening={isListening}
           onStartListening={startListening}
           onStopListening={stopListening}
-          onSubmitText={handleSpeech}
+          onSubmitText={(text) => processAction(text, elevenLabsKey, voiceOn)}
           supported={supported}
           disabled={disabled}
+          interimTranscript={interimTranscript}
         />
 
         <div

@@ -7,9 +7,10 @@ const DEEPGRAM_API_KEY = import.meta.env.VITE_DEEPGRAM_KEY;
  * useVoice(onResult, onInterim, onError)
  * Returns: { isListening, startListening, stopListening, supported, interimTranscript }
  */
-export function useVoice(onResult, onInterim, onError) {
+export function useVoice() {
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
+  const [finalTranscript, setFinalTranscript] = useState(""); // New state for final transcript
   const deepgramSocketRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const lastTranscriptTimeRef = useRef(0);
@@ -36,6 +37,7 @@ export function useVoice(onResult, onInterim, onError) {
         console.log("Deepgram connection opened.");
         setIsListening(true);
         setInterimTranscript("");
+        setFinalTranscript(""); // Clear final transcript on start
         lastTranscriptTimeRef.current = Date.now();
         // Start silence timer
         silenceTimerRef.current = setInterval(() => {
@@ -54,18 +56,18 @@ export function useVoice(onResult, onInterim, onError) {
         if (transcript) {
           lastTranscriptTimeRef.current = Date.now(); // Reset silence timer
           if (isFinal) {
+            setFinalTranscript(transcript); // Set final transcript
             setInterimTranscript("");
-            if (onResult) onResult(transcript);
           } else {
             setInterimTranscript(transcript);
-            if (onInterim) onInterim(transcript);
           }
         }
       });
 
       connection.on("error", (err) => {
         console.error("Deepgram error:", err);
-        if (onError) onError(String(err));
+        // In a hook, we don't call an onError prop directly.
+        // Instead, we might expose an error state or log it.
         stopListening(); // Ensure listening state is reset on error
       });
 
@@ -86,16 +88,16 @@ export function useVoice(onResult, onInterim, onError) {
         deepgramSocketRef.current = connection;
       }).catch((err) => {
         console.error("Microphone access error:", err);
-        if (onError) onError("Microphone access denied or failed: " + err.message);
+        // Expose error state or log it
         setIsListening(false);
       });
 
     } catch (err) {
       console.error("Failed to start Deepgram listening:", err);
-      if (onError) onError(String(err));
+      // Expose error state or log it
       setIsListening(false);
     }
-  }, [isListening, onResult, onInterim, onError, stopListening]);
+  }, [isListening, stopListening]); // Removed onResult, onInterim, onError from dependencies
 
   const stopListening = useCallback(() => {
     if (deepgramSocketRef.current) {
@@ -121,5 +123,5 @@ export function useVoice(onResult, onInterim, onError) {
     };
   }, [stopListening]);
 
-  return { isListening, startListening, stopListening, supported, interimTranscript };
+  return { isListening, startListening, stopListening, supported, interimTranscript, finalTranscript };
 }
