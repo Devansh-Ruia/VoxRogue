@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useGame } from "../hooks/useGame";
 import { useVoice } from "../hooks/useVoice";
 import { GameLog } from "./GameLog";
@@ -49,45 +49,58 @@ export function VoxRogue() {
   const isTakingDamage = false; // TODO: implement damage detection logic
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#0a0a0a",
-        color: "#e2e8f0",
-        fontFamily: "'Courier New', monospace",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: 16,
-      }}
-    >
+    <React.Fragment>
+      {/* Scanline overlay */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          background: "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)",
+          zIndex: 1,
+        }}
+      />
+      
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "radial-gradient(ellipse at 20% 50%, #0d0d22, #080810)",
+          color: "#f0f0ff",
+          fontFamily: "'Space Mono', 'Courier New', monospace",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: 16,
+          position: "relative",
+          zIndex: 0,
+        }}
+      >
       <div style={{ width: "100%", maxWidth: 860 }}>
         <header
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
+            marginBottom: 24,
+            textAlign: "center",
           }}
         >
-          <h1 style={{ color: "#fde68a", margin: 0, fontSize: 24 }}>
-            ⚔️ VOXROGUE
+          <h1 style={{ 
+            color: "#f0f0ff", 
+            margin: 0, 
+            fontSize: 32, 
+            fontFamily: "'Space Mono', 'Courier New', monospace",
+            fontWeight: 700,
+            letterSpacing: "10px",
+            marginBottom: 8,
+          }}>
+            VOXROGUE
           </h1>
-          <button
-            type="button"
-            onClick={() => setSettingsOpen((s) => !s)}
-            style={{
-              background: "transparent",
-              border: "1px solid #333",
-              color: "#94a3b8",
-              padding: "6px 10px",
-              borderRadius: 4,
-              cursor: "pointer",
-              fontSize: 18,
-            }}
-          >
-            ⚙️
-          </button>
+          <div style={{
+            color: "#2a2a50",
+            fontSize: 10,
+            fontFamily: "'Space Mono', 'Courier New', monospace",
+            letterSpacing: "2px",
+          }}>
+            // DUNGEON_SYS v0.1 // MISTRAL_ENGINE // VOICE_INPUT_ACTIVE
+          </div>
         </header>
 
         {settingsOpen && (
@@ -95,12 +108,12 @@ export function VoxRogue() {
             style={{
               marginBottom: 16,
               padding: 12,
-              background: "#0f0f0f",
-              border: "1px solid #333",
-              borderRadius: 4,
+              background: "#0e0e1a",
+              border: "1px solid #1e1e35",
+              borderRadius: 8,
             }}
           >
-            <label style={{ display: "block", marginBottom: 8 }}>
+            <label style={{ display: "block", marginBottom: 8, color: "#6060a0", fontFamily: "'Space Mono', 'Courier New', monospace" }}>
               ElevenLabs API Key (optional):{" "}
               <input
                 type="password"
@@ -111,14 +124,15 @@ export function VoxRogue() {
                   marginLeft: 8,
                   padding: "4px 8px",
                   width: 240,
-                  background: "#1e293b",
-                  border: "1px solid #333",
-                  color: "#e2e8f0",
+                  background: "#080810",
+                  border: "1px solid #1e1e35",
+                  color: "#f0f0ff",
                   borderRadius: 4,
+                  fontFamily: "'Space Mono', 'Courier New', monospace",
                 }}
               />
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#6060a0", fontFamily: "'Space Mono', 'Courier New', monospace" }}>
               <input
                 type="checkbox"
                 checked={voiceOn}
@@ -126,8 +140,8 @@ export function VoxRogue() {
               />
               Voice output (TTS)
             </label>
-            <p style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>
-              Mistral: set VITE_MISTRAL_KEY in .env for the game master.
+            <p style={{ fontSize: 12, color: "#2a2a50", marginTop: 8, fontFamily: "'Space Mono', 'Courier New', monospace" }}>
+              Mistral: set VITE_MISTRAL_KEY in .env for game master.
             </p>
           </div>
         )}
@@ -173,12 +187,14 @@ export function VoxRogue() {
           style={{
             marginTop: 12,
             fontSize: 12,
-            color: "#64748b",
+            color: "#6060a0",
+            fontFamily: "'Space Mono', 'Courier New', monospace",
           }}
         >
-          "attack the goblin" · "reason with the guard" · "pick up the key" ·
+          "attack goblin" · "reason with guard" · "pick up key" ·
           "go north"
         </div>
+      </div>
       </div>
 
       {isWon && (
@@ -186,7 +202,7 @@ export function VoxRogue() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.85)",
+            background: "rgba(0,8,4,0.96)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -195,21 +211,28 @@ export function VoxRogue() {
         >
           <div
             style={{
-              background: "#0a0f0a",
-              border: "2px solid #14532d",
+              background: "#0e1a10",
+              border: "2px solid #00ff88",
               borderRadius: 8,
               padding: 32,
               maxWidth: 420,
               textAlign: "center",
             }}
           >
-            <h2 style={{ color: "#fde68a", marginTop: 0 }}>
-              ☠️ THE DUNGEON IS CONQUERED
+            <h2 style={{ 
+              color: "#00ff88", 
+              marginTop: 0,
+              fontSize: 64,
+              fontFamily: "'Space Mono', 'Courier New', monospace",
+              fontWeight: 700,
+              textShadow: "0 0 20px #00ff88, 0 0 40px #00ff8844",
+            }}>
+              VICTORY
             </h2>
-            <p style={{ color: "#94a3b8" }}>
+            <p style={{ color: "#6060a0", fontFamily: "'Space Mono', 'Courier New', monospace" }}>
               Final HP: {player.hp}/{player.maxHp} · Gold: {player.gold}
             </p>
-            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
+            <p style={{ fontStyle: "italic", color: "#f0f0ff", fontFamily: "'Space Mono', 'Courier New', monospace" }}>
               Against all probability, and certainly against all good taste,
               you've won. The dungeon is mildly impressed. Don't let it go to
               your head.
@@ -220,15 +243,16 @@ export function VoxRogue() {
               style={{
                 marginTop: 16,
                 padding: "10px 20px",
-                background: "#14532d",
-                border: "1px solid #166534",
-                color: "#e2e8f0",
-                borderRadius: 6,
+                background: "#0e1a10",
+                border: "1px solid #00ff88",
+                color: "#00ff88",
+                borderRadius: 8,
                 cursor: "pointer",
-                fontFamily: "inherit",
+                fontFamily: "'Space Mono', 'Courier New', monospace",
+                fontWeight: 700,
               }}
             >
-              Play Again
+              PLAY AGAIN
             </button>
           </div>
         </div>
@@ -239,7 +263,7 @@ export function VoxRogue() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.85)",
+            background: "rgba(8,0,16,0.96)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -248,18 +272,25 @@ export function VoxRogue() {
         >
           <div
             style={{
-              background: "#0f0a0a",
-              border: "2px solid #7f1d1d",
+              background: "#0e0010",
+              border: "2px solid #ff2244",
               borderRadius: 8,
               padding: 32,
               maxWidth: 420,
               textAlign: "center",
             }}
           >
-            <h2 style={{ color: "#f87171", marginTop: 0 }}>
-              ☠️ YOU HAVE DIED
+            <h2 style={{ 
+              color: "#ff2244", 
+              marginTop: 0,
+              fontSize: 80,
+              fontFamily: "'Space Mono', 'Courier New', monospace",
+              fontWeight: 700,
+              textShadow: "0 0 20px #ff2244, 0 0 40px #ff224444",
+            }}>
+              DEAD
             </h2>
-            <p style={{ fontStyle: "italic", color: "#e2e8f0" }}>
+            <p style={{ fontStyle: "italic", color: "#f0f0ff", fontFamily: "'Space Mono', 'Courier New', monospace" }}>
               The dungeon adds your bones to its extensive collection. You
               were, at minimum, memorable. Mostly as a cautionary tale.
             </p>
@@ -269,19 +300,20 @@ export function VoxRogue() {
               style={{
                 marginTop: 16,
                 padding: "10px 20px",
-                background: "#7f1d1d",
-                border: "1px solid #991b1b",
-                color: "#e2e8f0",
-                borderRadius: 6,
+                background: "#0e0010",
+                border: "1px solid #ff2244",
+                color: "#ff2244",
+                borderRadius: 8,
                 cursor: "pointer",
-                fontFamily: "inherit",
+                fontFamily: "'Space Mono', 'Courier New', monospace",
+                fontWeight: 700,
               }}
             >
-              Try Again
+              TRY AGAIN
             </button>
           </div>
         </div>
       )}
-    </div>
+    </React.Fragment>
   );
 }

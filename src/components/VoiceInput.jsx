@@ -26,6 +26,7 @@ export function VoiceInput({
         alignItems: "center",
         gap: 8,
         padding: "12px 0",
+        borderTop: "1px solid #1e1e35",
         opacity: disabled ? 0.6 : 1,
       }}
     >
@@ -35,18 +36,23 @@ export function VoiceInput({
           onClick={isListening ? onStopListening : onStartListening}
           disabled={disabled}
           style={{
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             borderRadius: 8,
-            border: "1px solid #333",
-            background: isListening ? "#7f1d1d" : "#1e293b",
-            color: "#e2e8f0",
-            fontSize: 20,
+            border: isListening ? "1px solid #ff2244" : "1px solid #1e1e35",
+            background: isListening ? "#200010" : "#0e0e1a",
+            color: isListening ? "#ff2244" : "#6060a0",
+            fontSize: 9,
+            fontFamily: "'Space Mono', 'Courier New', monospace",
+            fontWeight: 700,
             cursor: disabled ? "not-allowed" : "pointer",
+            ...(isListening && {
+              animation: "mic-pulse 1.5s ease-in-out infinite",
+            }),
           }}
           title={isListening ? "Stop listening" : "Start voice input"}
         >
-          {isListening ? "🔴" : "🎤"}
+          {isListening ? "REC" : "MIC"}
         </button>
       )}
       <form
@@ -58,17 +64,18 @@ export function VoiceInput({
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          placeholder="Say or type your action..."
+          placeholder="// speak or type your action..."
           disabled={disabled}
           style={{
             flex: 1,
             padding: "10px 12px",
-            background: "#0f0f0f",
-            border: "1px solid #333",
-            borderRadius: 6,
-            color: "#e2e8f0",
-            fontFamily: "Courier New, monospace",
+            background: "transparent",
+            border: "1px solid #1e1e35",
+            borderRadius: 8,
+            color: "#f0f0ff",
+            fontFamily: "'Space Mono', 'Courier New', monospace",
             fontSize: 14,
+            caretColor: "#4040ff",
           }}
         />
         <button
@@ -76,16 +83,18 @@ export function VoiceInput({
           disabled={disabled || !text.trim()}
           style={{
             padding: "10px 14px",
-            background: "#1e293b",
-            border: "1px solid #333",
-            borderRadius: 6,
-            color: "#e2e8f0",
+            background: "#0e1a10",
+            border: "1px solid #00ff88",
+            borderRadius: 8,
+            color: "#00ff88",
             cursor: disabled ? "not-allowed" : "pointer",
-            fontSize: 16,
+            fontSize: 14,
+            fontFamily: "'Space Mono', 'Courier New', monospace",
+            fontWeight: 700,
           }}
           title="Submit"
         >
-          ↵
+          RUN
         </button>
       </form>
     </div>

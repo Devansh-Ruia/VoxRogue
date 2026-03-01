@@ -7,16 +7,45 @@ export function GameLog({ log, isThinking, logColors }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [log, isThinking]);
 
+  const getEntryStyle = (type) => {
+    switch (type) {
+      case "narrator":
+        return {
+          borderLeft: "3px solid #ffaa00",
+          boxShadow: "0 0 8px #ffaa0044, 0 0 20px #ffaa0022",
+          color: "#ffaa00",
+        };
+      case "combat":
+        return {
+          borderLeft: "3px solid #ff2244",
+          color: "#f0f0ff",
+        };
+      case "player":
+        return {
+          borderLeft: "3px solid #4040ff",
+          color: "#8888ff",
+        };
+      case "system":
+        return {
+          borderLeft: "3px solid #c060ff",
+          color: "#9060cc",
+        };
+      default:
+        return {
+          borderLeft: "3px solid transparent",
+          color: "#f0f0ff",
+        };
+    }
+  };
+
   return (
     <div
       style={{
         height: 400,
         overflowY: "auto",
         padding: 12,
-        background: "#0f0f0f",
-        border: "1px solid #333",
-        borderRadius: 4,
-        fontFamily: "Courier New, monospace",
+        background: "transparent",
+        fontFamily: "'Space Mono', 'Courier New', monospace",
         fontSize: 14,
       }}
     >
@@ -25,12 +54,9 @@ export function GameLog({ log, isThinking, logColors }) {
           key={i}
           style={{
             marginBottom: 8,
-            color: logColors?.[entry.type] ?? "#e2e8f0",
-            borderLeft:
-              entry.type === "narrator"
-                ? "2px solid #451a03"
-                : "2px solid transparent",
-            paddingLeft: entry.type === "narrator" ? 8 : 0,
+            paddingLeft: 12,
+            animation: "log-entry 0.15s ease-out",
+            ...getEntryStyle(entry.type),
           }}
         >
           {entry.text}
@@ -39,12 +65,12 @@ export function GameLog({ log, isThinking, logColors }) {
       {isThinking && (
         <div
           style={{
-            color: "#94a3b8",
-            fontStyle: "italic",
-            animation: "pulse 1.2s ease-in-out infinite",
+            color: "#2a2a50",
+            fontFamily: "'Space Mono', 'Courier New', monospace",
+            fontSize: 14,
           }}
         >
-          The dungeon master considers your fate...
+          // processing ...
         </div>
       )}
       <div ref={bottomRef} />
