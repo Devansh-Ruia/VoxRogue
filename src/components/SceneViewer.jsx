@@ -8,7 +8,7 @@ function seededRand(seed) {
 }
 
 function generateScene(roomName, enemies, loot, isDead, isWon) {
-  const rand = seededRand(roomName);
+  const rand = seededRand(roomName + Date.now());
   const isBoss = roomName.toLowerCase().includes("lich");
   const hasTreasure = loot.length > 0;
   const hasEnemies = enemies.length > 0;

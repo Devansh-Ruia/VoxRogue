@@ -25,6 +25,7 @@ export function VoxRogue() {
     resetGame,
     logColors,
     isTakingDamage,
+    turnCount,
   } = useGame();
 
   const handleSpeech = (speech) => {
@@ -149,6 +150,7 @@ export function VoxRogue() {
         >
           <div>
             <SceneViewer
+              key={turnCount}
               roomName={currentRoom?.name}
               enemies={currentRoom?.enemies || []}
               loot={currentRoom?.loot || []}

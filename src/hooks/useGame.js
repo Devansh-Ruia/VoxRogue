@@ -37,6 +37,7 @@ export function useGame() {
   const [isWon, setIsWon] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isTakingDamage, setIsTakingDamage] = useState(false);
+  const [turnCount, setTurnCount] = useState(0);
 
   const addLog = useCallback((type, text) => {
     setLog((prev) => [...prev, { type, text }]);
@@ -60,6 +61,7 @@ export function useGame() {
 
       addLog("player", speech);
       setIsThinking(true);
+      setTurnCount(prev => prev + 1);
 
       try {
         const result = await callGameMaster(speech, currentRoom, player);
@@ -186,6 +188,7 @@ setTimeout(() => setIsTakingDamage(false), 300);
     processAction,
     resetGame,
     isTakingDamage,
+    turnCount,
     logColors: LOG_COLORS,
   };
 }
